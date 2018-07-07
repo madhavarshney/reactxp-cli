@@ -1,0 +1,17 @@
+{
+  "name": "reactxp-cli",
+  "version": "0.0.1",
+  "description": "A CLI for building ReactXP projects",
+  "repository": "https://github.com/madhavarshney/reactxp-cli",
+  "author": "Madhav Varshney <madhavarshney@gmail.com> (https://github.com/madhavarshney/)",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "bin": {
+    "reactxp": "./lib/index.js"
+  },
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "commander": "^2.16.0",
+    "figlet": "^1.2.0"
+  }
+}
