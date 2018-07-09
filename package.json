@@ -12,7 +12,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "lint": "tslint -p . -t codeFrame"
+    "lint": "tslint -p . -t codeFrame",
+    "test": "yarn run build && yarn run lint"
   },
   "dependencies": {
     "chalk": "^2.4.1",
