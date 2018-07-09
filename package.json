@@ -12,6 +12,8 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.16.0",
-    "figlet": "^1.2.0"
+    "figlet": "^1.2.0",
+    "prompt": "^1.0.0",
+    "semver": "^5.5.0"
   }
 }
