@@ -1,22 +1,23 @@
 // Copyright (c) 2018, Madhav Varshney.
 // This source code is licensed under the MIT license.
-// Derived from React Native:
+// Portions derived from React Native:
 // Copyright (c) 2015-present, Facebook, Inc.
 
-const path = require('path');
-const execSync = require('child_process').execSync;
-const semver = require('semver');
+import chalk from 'chalk';
+import { execSync } from 'child_process';
+import * as path from 'path';
+import * as semver from 'semver';
 
-function reactNativePackageJsonPath() {
+export function reactNativePackageJsonPath() {
     return path.resolve(
         process.cwd(),
         'node_modules',
         'react-native',
         'package.json',
     );
-};
+}
 
-function getYarnVersionIfAvailable() {
+export function getYarnVersionIfAvailable() {
     let yarnVersion;
     try {
         if (process.platform === 'win32') {
@@ -37,7 +38,7 @@ function getYarnVersionIfAvailable() {
     }
 }
 
-function validateProjectName(name) {
+export function validateProjectName(name: string) {
     if (!String(name).match(/^[$A-Z_][0-9A-Z_$]*$/i)) {
         console.error(
             '"%s" is not a valid name for a project. Please use a valid identifier ' +
@@ -57,8 +58,8 @@ function validateProjectName(name) {
     }
 }
 
-function checkNodeVersion() {
-    var packageJson = require(reactNativePackageJsonPath());
+export function checkNodeVersion() {
+    const packageJson = require(reactNativePackageJsonPath());
     if (!packageJson.engines || !packageJson.engines.node) {
         return;
     }
@@ -73,10 +74,4 @@ function checkNodeVersion() {
             packageJson.engines.node,
         );
     }
-}
-
-module.exports = {
-    getYarnVersionIfAvailable,
-    validateProjectName,
-    checkNodeVersion
 }

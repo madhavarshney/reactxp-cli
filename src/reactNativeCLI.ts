@@ -3,49 +3,61 @@
 // Derived from React Native:
 // Copyright (c) 2015-present, Facebook, Inc.
 
-'use strict';
+import { execSync } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as prompt from 'prompt';
+import * as semver from 'semver';
 
-const fs = require('fs');
-const path = require('path');
-const execSync = require('child_process').execSync;
-const prompt = require('prompt');
-const semver = require('semver');
-
-const {
+import {
+    checkNodeVersion,
     getYarnVersionIfAvailable,
     validateProjectName,
-    checkNodeVersion
-} = require('./utilities.js');
+} from './utilities';
 
+export interface RNInitOptions {
+    version: string;
+    npm?: boolean;
+    installCommand?: string;
+    verbose?: boolean;
+}
 
 function cliModulePath() {
     return path.resolve(process.cwd(), 'node_modules', 'react-native', 'cli.js');
-};
+}
 
-function createAfterConfirmation(name, options) {
+function createAfterConfirmation(name: string, options: RNInitOptions) {
     prompt.start();
 
-    var property = {
-        name: 'yesno',
+    const property = {
+        default: 'no',
         message: 'Directory ' + name + ' already exists. Continue?',
+        name: 'confirm',
         validator: /y[es]*|n[o]?/,
         warning: 'Must respond yes or no',
-        default: 'no',
     };
 
-    prompt.get(property, function (err, result) {
-        if (result.yesno[0] === 'y') {
-            createProject(name, options);
-        } else {
-            console.log('Project initialization canceled');
+    prompt.get(property, (err: Error, result: { confirm: 'yes' | 'no' }) => {
+        let cancelled = false;
+        if (err) {
+            if (err.message === 'canceled') {
+                cancelled = true;
+            } else {
+                throw err;
+            }
+        }
+        if (cancelled || result.confirm[0] !== 'y') {
+            console.log('\nProject initialization canceled');
             process.exit();
+        } else {
+            createProject(name, options);
         }
     });
 }
 
-function createProject(name, options) {
-    var root = path.resolve(name);
-    var projectName = path.basename(root);
+function createProject(name: string, options: RNInitOptions) {
+    const root = path.resolve(name);
+    const projectName = path.basename(root);
 
     console.log('This will walk you through creating a new React Native project in', root);
 
@@ -53,7 +65,8 @@ function createProject(name, options) {
         fs.mkdirSync(root);
     }
 
-    var packageJson = {
+    // tslint:disable:object-literal-sort-keys
+    const packageJson = {
         name: projectName,
         version: '0.0.1',
         private: true,
@@ -63,18 +76,16 @@ function createProject(name, options) {
             android: 'react-native run-android',
         },
     };
-    fs.writeFileSync(
-        path.join(root, 'package.json'),
-        JSON.stringify(packageJson),
-    );
-    process.chdir(root);
+    // tslint:enable:object-literal-sort-keys
 
+    fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify(packageJson));
+    process.chdir(root);
     run(root, projectName, options);
 }
 
-function getInstallPackage(rnPackage) {
-    var packageToInstall = 'react-native';
-    var isValidSemver = semver.valid(rnPackage);
+function getInstallPackage(rnPackage: string) {
+    let packageToInstall = 'react-native';
+    const isValidSemver = semver.valid(rnPackage);
     if (isValidSemver) {
         packageToInstall += '@' + isValidSemver;
     } else if (rnPackage) {
@@ -84,14 +95,12 @@ function getInstallPackage(rnPackage) {
     return packageToInstall;
 }
 
-function run(root, projectName, options) {
-    var rnPackage = options.version; // e.g. '0.38' or '/path/to/archive.tgz'
-    var forceNpmClient = options.npm;
-    var yarnVersion = !forceNpmClient && getYarnVersionIfAvailable();
-    var installCommand;
+function run(root: string, projectName: string, options: RNInitOptions) {
+    const rnPackage = options.version;
+    const forceNpmClient = options.npm;
+    const yarnVersion = !forceNpmClient && getYarnVersionIfAvailable();
+    let installCommand;
     if (options.installCommand) {
-        // In CI environments it can be useful to provide a custom command,
-        // to set up and use an offline mirror for installing dependencies, for example.
         installCommand = options.installCommand;
     } else {
         if (yarnVersion) {
@@ -115,18 +124,10 @@ function run(root, projectName, options) {
     }
     checkNodeVersion();
     const cli = require(cliModulePath());
-    console.log('got here')
     cli.init(root, projectName);
 }
 
-/**
- * @param name Project name, e.g. 'AwesomeApp'.
- * @param options.verbose If true, will run 'npm install' in verbose mode (for debugging).
- * @param options.version Version of React Native to install, e.g. '0.38.0'.
- * @param options.npm If true, always use the npm command line client,
- *                       don't use yarn even if available.
- */
-function init(name, options) {
+export function init(name: string, options: RNInitOptions) {
     validateProjectName(name);
 
     if (fs.existsSync(name)) {
@@ -135,5 +136,3 @@ function init(name, options) {
         createProject(name, options);
     }
 }
-
-module.exports = { init };
