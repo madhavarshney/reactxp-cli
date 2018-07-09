@@ -10,6 +10,7 @@ import * as program from 'yargs';
 
 import './modules';
 import * as reactNativeCLI from './reactNativeCLI';
+import { validateProjectName } from './utilities';
 
 program
     .command('init <project-name>', 'Create a new ReactXP project.', {
@@ -19,10 +20,14 @@ program
         },
     }, (args) => {
         const projectName: string = args['project-name'];
+        validateProjectName(projectName);
+
         const version: string = args.version;
         const projectPath = path.resolve(process.cwd(), projectName);
+
         console.log(chalk.blueBright(figlet.textSync('ReactXP   CLI \n----------')));
-        console.log(chalk.whiteBright(`Initializing project at ${projectPath}...`));
+        console.log(chalk.whiteBright(`Initializing project at ${projectPath}...\n`));
+
         reactNativeCLI.init(projectName, { version });
     });
 
