@@ -21,7 +21,7 @@ program
         const projectName: string = args['project-name'];
         const version: string = args.version;
         const projectPath = path.resolve(process.cwd(), projectName);
-        console.log(chalk.blueBright(figlet.textSync('ReactXP   CLI \n----------')))
+        console.log(chalk.blueBright(figlet.textSync('ReactXP   CLI \n----------')));
         console.log(chalk.whiteBright(`Initializing project at ${projectPath}...`));
         reactNativeCLI.init(projectName, { version });
     });
@@ -33,7 +33,7 @@ program
             describe: 'The version of React Native to use.',
         },
     }, (args) => {
-        console.log(chalk.magentaBright(figlet.textSync('Coming soon ...')))
+        console.log(chalk.magentaBright(figlet.textSync('Coming soon ...')));
     });
 
 const argv = program.argv;
