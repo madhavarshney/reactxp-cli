@@ -4,22 +4,22 @@
 // This source code is licensed under the MIT license.
 
 import chalk from 'chalk';
-import * as program from 'commander';
 import * as figlet from 'figlet';
 import * as path from 'path';
+import * as program from 'yargs';
 
 import './modules';
 import * as reactNativeCLI from './reactNativeCLI';
 
-interface CLIOptions {
-    version: string;
-}
-
 program
-    .command('init <project-name>')
-    .option('--version <version>', 'The version of React Native to use.', '0.55.4')
-    .action((projectName: string, args: CLIOptions) => {
-        const version = args.version;
+    .command('init <project-name>', 'Create a new ReactXP project.', {
+        version: {
+            default: '0.55.4',
+            describe: 'The version of React Native to use.',
+        },
+    }, (args) => {
+        const projectName: string = args['project-name'];
+        const version: string = args.version;
         const projectPath = path.resolve(process.cwd(), projectName);
         console.log(chalk.blueBright(figlet.textSync('ReactXP   CLI \n----------')))
         console.log(chalk.whiteBright(`Initializing project at ${projectPath}...`));
@@ -27,13 +27,17 @@ program
     });
 
 program
-    .command('upgrade')
-    .action(() => {
-        console.log(chalk.magentaBright(figlet.textSync('Coming soon ...')));
+    .command('upgrade', 'Upgrade an existing ReactXP project.', {
+        version: {
+            default: '0.55.4',
+            describe: 'The version of React Native to use.',
+        },
+    }, (args) => {
+        console.log(chalk.magentaBright(figlet.textSync('Coming soon ...')))
     });
 
-program.parse(process.argv);
+const argv = program.argv;
 
-if (program.args.length === 0) {
-    program.help();
+if (!argv._[0]) {
+    program.showHelp();
 }
