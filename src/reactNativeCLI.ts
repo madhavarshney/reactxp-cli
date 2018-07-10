@@ -5,7 +5,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as prompt from 'prompt';
 import * as semver from 'semver';
 
 import {
@@ -25,7 +24,7 @@ function getRNInstallPackage(rnPackageOrVersion: string) {
     return isValidSemver ? `react-native@${isValidSemver}` : rnPackageOrVersion;
 }
 
-function createProject(name: string, options: RNInitOptions) {
+export function init(name: string, options: RNInitOptions) {
     const root = path.resolve(name);
     const projectName = path.basename(root);
 
@@ -56,41 +55,4 @@ function createProject(name: string, options: RNInitOptions) {
 
     const reactNativeLocalCLI = require(path.resolve(process.cwd(), 'node_modules/react-native/cli.js'));
     reactNativeLocalCLI.init(root, projectName);
-}
-
-function confirmAndCreateProject(name: string, options: RNInitOptions) {
-    prompt.start();
-
-    const property = {
-        default: 'no',
-        message: 'Directory ' + name + ' already exists. Continue?',
-        name: 'confirm',
-        validator: /y[es]*|n[o]?/,
-        warning: 'Must respond yes or no',
-    };
-
-    prompt.get(property, (err: Error, result: { confirm: 'yes' | 'no' }) => {
-        let cancelled = false;
-        if (err) {
-            if (err.message === 'canceled') {
-                cancelled = true;
-            } else {
-                throw err;
-            }
-        }
-        if (cancelled || result.confirm[0] !== 'y') {
-            console.log('\nProject initialization canceled');
-            process.exit();
-        } else {
-            createProject(name, options);
-        }
-    });
-}
-
-export function init(name: string, options: RNInitOptions) {
-    if (fs.existsSync(name)) {
-        confirmAndCreateProject(name, options);
-    } else {
-        createProject(name, options);
-    }
 }

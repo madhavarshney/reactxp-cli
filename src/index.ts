@@ -5,7 +5,8 @@
 
 import chalk from 'chalk';
 import * as figlet from 'figlet';
-import * as path from 'path';
+import { existsSync } from 'fs';
+import { prompts } from 'prompts';
 import * as program from 'yargs';
 
 import './modules';
@@ -13,36 +14,51 @@ import * as reactNativeCLI from './reactNativeCLI';
 import { validateProjectName } from './utilities';
 
 program
-    .command('init <project-name>', 'Create a new ReactXP project.', {
-        version: {
-            default: '0.55.4',
-            describe: 'The version of React Native to use.',
-        },
-    }, (args) => {
-        const projectName: string = args['project-name'];
-        validateProjectName(projectName);
+    .demandCommand()
+    .command('init [project-name]', 'Create a new ReactXP project.', (yargs) => {
+        return yargs
+            .showHelpOnFail(false)
+            .option('rn-version', {
+                default: '0.55.4',
+                describe: 'The version of React Native to use.',
+            })
+            .positional('project-name', {
+                describe: 'The name and path (from cwd) of the project to create.',
+            });
+    }, initializeProject)
+    .command('upgrade', 'Upgrade an existing ReactXP project.', (yargs) => {
+        return yargs
+            .showHelpOnFail(false)
+            .option('rn-version', {
+                default: '0.55.4',
+                describe: 'The version of React Native to use.',
+            });
+    }, upgradeProject)
+    .parse();
 
-        const version: string = args.version;
-        const projectPath = path.resolve(process.cwd(), projectName);
+async function initializeProject(args: program.Arguments) {
+    console.log(chalk.blueBright(figlet.textSync('ReactXP   CLI \n----------')));
 
-        console.log(chalk.blueBright(figlet.textSync('ReactXP   CLI \n----------')));
-        console.log(chalk.whiteBright(`Initializing project at ${projectPath}...\n`));
+    const version: string = args['rn-version'];
+    let projectName: string = args['project-name'];
 
+    if (!projectName) {
+        projectName = await prompts.text({ message: 'Enter a name for the new project.' });
+    }
+
+    validateProjectName(projectName);
+
+    const message = chalk.whiteBright(`Initializing project at ./${projectName}, continue?`);
+    const confirm = await prompts.confirm({ message, initial: !existsSync(projectName) });
+
+    if (confirm) {
         reactNativeCLI.init(projectName, { version });
-    });
+    } else {
+        console.log('\nProject initialization cancelled.');
+        process.exit();
+    }
+}
 
-program
-    .command('upgrade', 'Upgrade an existing ReactXP project.', {
-        version: {
-            default: '0.55.4',
-            describe: 'The version of React Native to use.',
-        },
-    }, (args) => {
-        console.log(chalk.magentaBright(figlet.textSync('Coming soon ...')));
-    });
-
-const argv = program.argv;
-
-if (!argv._[0]) {
-    program.showHelp();
+async function upgradeProject() {
+    console.log(chalk.magentaBright(figlet.textSync('Coming soon ...')));
 }
