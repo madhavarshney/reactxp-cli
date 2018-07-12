@@ -1,12 +1,14 @@
 // Copyright (c) 2018, Madhav Varshney.
 // This source code is licensed under the MIT license.
-// Portions derived from React Native:
-// Copyright (c) 2015-present, Facebook, Inc.
 
-import chalk from 'chalk';
 import { execSync } from 'child_process';
-import * as path from 'path';
+import { existsSync } from 'fs';
+import { resolve } from 'path';
 import * as semver from 'semver';
+
+export function doesProjectUseYarn(path: string) {
+    return existsSync(resolve(path, 'yarn.lock'));
+}
 
 let yarnVersion: string | false;
 
@@ -16,74 +18,38 @@ export function getYarnVersionIfAvailable() {
     }
 
     try {
-        yarnVersion = execSync(
-            process.platform === 'win32'
-                ? 'yarn --version 2> NUL'
-                : 'yarn --version 2>/dev/null',
-        ).toString().trim() || '';
+        yarnVersion = execSync('yarn --version').toString().trim();
     } catch (error) {
-        return false;
+        return null;
     }
 
-    try {
-        return semver.gte(yarnVersion, '1.0.0') ? yarnVersion : false;
-    } catch (error) {
-        console.error('Cannot parse yarn version: ' + yarnVersion);
-        return false;
-    }
+    return semver.valid(yarnVersion);
 }
 
-export function validateProjectName(name: string) {
-    if (!name.match(/^[$A-Z_][0-9A-Z_$]*$/i)) {
-        console.error(`"${name}" is not a valid name for a project. Please use an alphanumeric name.`);
-        process.exit(1);
-    }
-}
-
-export function checkNodeVersion() {
-    const packageJsonPath = path.resolve(process.cwd(), 'node_modules/react-native/package.json');
-    const packageJson = require(packageJsonPath);
-    if (!packageJson.engines || !packageJson.engines.node) {
-        return;
-    }
-    if (!semver.satisfies(process.version, packageJson.engines.node)) {
-        console.error(chalk.red(
-            `You are currently running Node ${process.version} ` +
-            `but React Native requires ${packageJson.engines.node}. ` +
-            'Please use a supported version of Node.\n' +
-            'See https://facebook.github.io/react-native/docs/getting-started.html',
-        ));
+export function getInstallPackage(packageName: string, packageVersion: semver.SemVer, description: string) {
+    const versionRange = `~${packageVersion.version}-rc.0`;
+    console.log(`Checking for ${description} version matching ${versionRange}`);
+    const versions = JSON.parse(execSync(`npm view ${packageName} versions --json`).toString());
+    const versionToInstall = semver.maxSatisfying(versions, versionRange);
+    if (versionToInstall) {
+        return `${packageName}@${versionToInstall}`;
     }
 }
 
 export interface InstallPackageOptions {
-    npm?: boolean;
-    installCommand?: string;
-    verbose?: boolean;
+    forceNPM?: boolean;
 }
 
 export function installPackage(packageToInstall: string, options: InstallPackageOptions) {
-    const forceNpmClient = options.npm;
     let installCommand: string;
-    if (options.installCommand) {
-        installCommand = options.installCommand;
+
+    if (!options.forceNPM && getYarnVersionIfAvailable()) {
+        console.log(`Installing ${packageToInstall} with Yarn v${yarnVersion}...`);
+        installCommand = `yarn add ${packageToInstall} --exact`;
     } else {
-        if (!forceNpmClient && getYarnVersionIfAvailable()) {
-            console.log(`Installing ${packageToInstall} with Yarn v${yarnVersion}...`);
-            installCommand = `yarn add ${packageToInstall} --exact`;
-        } else {
-            console.log(`Installing ${packageToInstall} with NPM...`);
-            installCommand = `npm install --save --save-exact ${packageToInstall}`;
-        }
-        if (options.verbose) {
-            installCommand += ' --verbose';
-        }
+        console.log(`Installing ${packageToInstall} with NPM...`);
+        installCommand = `npm install --save ${packageToInstall}`;
     }
-    try {
-        execSync(installCommand, { stdio: 'inherit' });
-    } catch (err) {
-        console.error(err);
-        console.error(`Command "${installCommand}" failed.`);
-        process.exit(1);
-    }
+
+    execSync(installCommand, { stdio: 'inherit' });
 }

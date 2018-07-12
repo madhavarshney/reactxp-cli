@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "lib/index.js",
   "bin": {
-    "reactxp": "./lib/index.js"
+    "reactxp": "./lib/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -25,7 +25,7 @@
   "devDependencies": {
     "@types/node": "^10.5.2",
     "@types/semver": "^5.5.0",
-    "@types/yargs": "^11.0.0",
+    "@types/yargs": "^11.1.0",
     "ts-node": "^7.0.0",
     "tslint": "^5.10.0",
     "typescript": "^2.9.2"

@@ -3,6 +3,8 @@
     "rules": {
         "quotemark": [true, "single"],
         "no-console": false,
-        "interface-name": false
+        "interface-name": false,
+        "object-literal-sort-keys": [true, "match-declaration-order"],
+        "no-string-throw": false
     }
 }
