@@ -35,9 +35,17 @@ interface Argv extends program.Argv {
                     describe: 'The version of React Native to use.',
                     type: 'string',
                 },
+                'windows-version': {
+                    describe: 'The version of React Native Windows to use.',
+                    type: 'string',
+                },
                 'skip-init': {
                     default: false,
                     describe: 'Skip adding React Native, useful for existing projects.',
+                },
+                'skip-windows': {
+                    default: false,
+                    describe: 'Skip adding Windows UWP support.',
                 },
                 // tslint:enable:object-literal-sort-keys
             })

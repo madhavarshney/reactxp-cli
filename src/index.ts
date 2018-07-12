@@ -10,6 +10,7 @@ import { Arguments } from 'yargs';
 
 import './modules';
 import * as reactNativeCLI from './reactNativeCLI';
+import * as rnWindowsCLI from './rnWindowsCLI';
 import { getYarnVersionIfAvailable } from './utilities';
 
 interface PackageJSON {
@@ -26,7 +27,9 @@ export class ProjectWizard {
         verbose: boolean;
         forceNPM: boolean;
         rnVersion: string;
+        windowsVersion: string;
         skipInit: boolean;
+        skipWindows: boolean;
     };
 
     constructor() {
@@ -36,7 +39,9 @@ export class ProjectWizard {
             verbose: false,
             forceNPM: false,
             rnVersion: '',
+            windowsVersion: '',
             skipInit: true,
+            skipWindows: true,
         };
         this.initializeProject = this.initializeProject.bind(this);
         this.upgradeProject = this.upgradeProject.bind(this);
@@ -58,7 +63,9 @@ export class ProjectWizard {
             verbose: args.verbose,
             forceNPM: args.npm,
             rnVersion: args.rnVersion ? args.rnVersion : '0.55',
+            windowsVersion: args.windowsVersion,
             skipInit: args.skipInit,
+            skipWindows: args.skipWindows,
         };
 
         this.validateProjectName();
@@ -75,6 +82,11 @@ export class ProjectWizard {
 
         if (!this.options.skipInit) {
             reactNativeCLI.init(this.options);
+            console.log('\n');
+        }
+
+        if (!this.options.skipWindows) {
+            rnWindowsCLI.init(this.options);
         }
 
         if (!this.options.verbose && configPath) {
@@ -121,6 +133,9 @@ export class ProjectWizard {
             },
         };
         // tslint:enable:object-literal-sort-keys
+        if (!this.options.skipWindows) {
+            packageJSON.scripts.windows = 'react-native run-windows';
+        }
 
         writeFileSync(join(this.options.path, 'package.json'), JSON.stringify(packageJSON, undefined, 2));
     }
