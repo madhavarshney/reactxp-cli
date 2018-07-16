@@ -4,6 +4,7 @@
 import chalk from 'chalk';
 import { resolve } from 'path';
 import * as semver from 'semver';
+import * as yeoman from 'yeoman-environment';
 import { getInstallPackage, installPackage } from './utilities';
 
 export interface WindowsCLIOptions {
@@ -36,14 +37,25 @@ function getWindowsPackage(rnVersionOption: string, windowsVersion: string | und
     );
 }
 
-export function init(options: WindowsCLIOptions) {
+function generateWindows(options: WindowsCLIOptions) {
+    const namespace = options.namespace || options.name;
+
+    const env = yeoman.createEnv();
+    const generatorPath = resolve(
+        options.path,
+        'node_modules/react-native-windows/local-cli/generator-windows',
+    );
+    env.register(generatorPath, 'react-native:windows');
+
+    return new Promise((res) => {
+        env.run(`react-native:windows ${options.name}`, { ns: namespace }, res);
+    });
+}
+
+export async function init(options: WindowsCLIOptions) {
     console.log(chalk.whiteBright('Adding Windows UWP support...'));
 
     installPackage(getWindowsPackage(options.rnVersion, options.windowsVersion), options);
 
-    const generateWindows = require(resolve(
-        options.path,
-        'node_modules/react-native-windows/local-cli/generate-windows.js',
-    ));
-    generateWindows(options.path, options.name, options.namespace || options.name);
+    await generateWindows(options);
 }

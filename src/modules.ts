@@ -15,3 +15,10 @@ declare module 'prompts' {
 declare module 'figlet' {
     export function textSync(text: string): string;
 }
+
+declare module 'yeoman-environment' {
+    export function createEnv(): {
+        register(path: string, name: string): void;
+        run(command: string, opts: any, handler: () => void): void;
+    };
+}

@@ -86,7 +86,7 @@ export class ProjectWizard {
         }
 
         if (!this.options.skipWindows) {
-            rnWindowsCLI.init(this.options);
+            await rnWindowsCLI.init(this.options);
         }
 
         if (!this.options.verbose && configPath) {
