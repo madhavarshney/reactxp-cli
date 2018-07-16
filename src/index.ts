@@ -77,10 +77,11 @@ export class ProjectWizard {
             mkdirSync(this.options.path);
         }
         process.chdir(this.options.path);
-        this.createPackageJSON();
+
         const configPath = this.writePMConfig();
 
         if (!this.options.skipInit) {
+            this.createPackageJSON();
             reactNativeCLI.init(this.options);
             console.log('\n');
         }
