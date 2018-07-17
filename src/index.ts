@@ -28,6 +28,7 @@ export class ProjectWizard {
         forceNPM: boolean;
         rnVersion: string;
         windowsVersion: string;
+        windowsNamespace: string;
         skipInit: boolean;
         skipWindows: boolean;
     };
@@ -40,6 +41,7 @@ export class ProjectWizard {
             forceNPM: false,
             rnVersion: '',
             windowsVersion: '',
+            windowsNamespace: '',
             skipInit: true,
             skipWindows: true,
         };
@@ -64,6 +66,7 @@ export class ProjectWizard {
             forceNPM: args.npm,
             rnVersion: args.rnVersion ? args.rnVersion : '0.55',
             windowsVersion: args.windowsVersion,
+            windowsNamespace: args.windowsNamespace || name,
             skipInit: args.skipInit,
             skipWindows: args.skipWindows,
         };

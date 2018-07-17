@@ -10,9 +10,9 @@ import { getInstallPackage, installPackage } from './utilities';
 export interface RNInitOptions {
     name: string;
     path: string;
+    verbose: boolean;
+    forceNPM: boolean;
     rnVersion: string;
-    forceNPM?: boolean;
-    verbose?: boolean;
 }
 
 function checkNodeVersion(options: RNInitOptions) {

@@ -10,11 +10,11 @@ import { getInstallPackage, installPackage } from './utilities';
 export interface WindowsCLIOptions {
     name: string;
     path: string;
-    verbose?: boolean;
-    forceNPM?: boolean;
-    namespace?: string;
+    verbose: boolean;
+    forceNPM: boolean;
     rnVersion: string;
-    windowsVersion?: string;
+    windowsVersion: string;
+    windowsNamespace: string;
 }
 
 function getWindowsPackage(rnVersionOption: string, windowsVersion: string | undefined) {
@@ -38,8 +38,6 @@ function getWindowsPackage(rnVersionOption: string, windowsVersion: string | und
 }
 
 function generateWindows(options: WindowsCLIOptions) {
-    const namespace = options.namespace || options.name;
-
     const env = yeoman.createEnv();
     const generatorPath = resolve(
         options.path,
@@ -48,7 +46,7 @@ function generateWindows(options: WindowsCLIOptions) {
     env.register(generatorPath, 'react-native:windows');
 
     return new Promise((res) => {
-        env.run(`react-native:windows ${options.name}`, { ns: namespace }, res);
+        env.run(`react-native:windows ${options.name}`, { ns: options.windowsNamespace }, res);
     });
 }
 

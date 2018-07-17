@@ -37,7 +37,7 @@ export function getInstallPackage(packageName: string, packageVersion: semver.Se
 }
 
 export interface InstallPackageOptions {
-    forceNPM?: boolean;
+    forceNPM: boolean;
 }
 
 export function installPackage(packageToInstall: string, options: InstallPackageOptions) {

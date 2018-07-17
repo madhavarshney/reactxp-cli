@@ -39,6 +39,10 @@ interface Argv extends program.Argv {
                     describe: 'The version of React Native Windows to use.',
                     type: 'string',
                 },
+                'windows-namespace': {
+                    describe: 'The namespace that will be used in the generated Windows C# code.',
+                    type: 'string',
+                },
                 'skip-init': {
                     default: false,
                     describe: 'Skip adding React Native, useful for existing projects.',
