@@ -1,4 +1,4 @@
-// Copyright (c) 2018, Madhav Varshney.
+// Copyright (c) 2018-2019, Madhav Varshney.
 // This source code is licensed under the MIT license.
 
 import chalk from 'chalk';
