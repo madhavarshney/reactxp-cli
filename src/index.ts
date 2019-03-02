@@ -116,7 +116,7 @@ export class ProjectWizard {
         }
         const pathInfo = `${directoryExists ? 'existing directory ' : ''}${relativePath}`;
         const message = chalk.whiteBright(`Initializing project at ${pathInfo}, continue?`);
-        const confirm = await prompts.confirm({ message, initial: true });
+        const confirm = await prompts.confirm({ message, initial: !directoryExists });
 
         if (!confirm) {
             console.log('\nProject initialization cancelled.');
