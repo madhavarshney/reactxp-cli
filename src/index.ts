@@ -148,7 +148,7 @@ export class ProjectWizard {
         if (!this.options.verbose) {
             if (!this.options.forceNPM && getYarnVersionIfAvailable()) {
                 const configPath = join(this.options.path, '.yarnrc');
-                writeFileSync(configPath, '--silent true\n');
+                writeFileSync(configPath, '--add.silent true\n--install.silent true');
                 return configPath;
             } else {
                 const configPath = join(this.options.path, '.npmrc');
