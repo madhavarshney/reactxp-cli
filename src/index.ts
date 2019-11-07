@@ -95,7 +95,7 @@ export class ProjectWizard {
 
         if (!this.options.skipInit) {
             this.createPackageJSON();
-            reactNativeCLI.init(this.options);
+            await reactNativeCLI.init(this.options);
             console.log('\n');
         }
 

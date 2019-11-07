@@ -2,13 +2,15 @@
 // This source code is licensed under the MIT license.
 
 declare module 'prompts' {
-    export interface PromptOptions {
+    export interface PromptOptions<T = string> {
         message: string;
         initial?: boolean | string | number;
+        choices?: Array<{ title?: string, value: T }>;
     }
     export namespace prompts {
         function text(options: PromptOptions): string;
         function confirm(options: PromptOptions): boolean;
+        function select<T = string>(options: PromptOptions<T>): T;
     }
 }
 
