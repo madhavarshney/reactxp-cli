@@ -13,6 +13,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "lint": "tslint -p . -t codeFrame",
+    "cli": "ts-node ./src/cli.ts",
     "test": "yarn run build && yarn run lint"
   },
   "dependencies": {
