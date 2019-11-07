@@ -6,18 +6,28 @@ import { textSync } from 'figlet';
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
 import { basename, join, relative, resolve } from 'path';
 import { prompts } from 'prompts';
-import { Arguments } from 'yargs';
 
 import './modules';
 import * as reactNativeCLI from './reactNativeCLI';
 import * as rnWindowsCLI from './rnWindowsCLI';
-import { getYarnVersionIfAvailable } from './utilities';
+import { getYarnVersionIfAvailable, valueOrDefault } from './utilities';
 
 interface PackageJSON {
     name: string;
     version: string;
     private: boolean;
     scripts: Record<string, string>;
+}
+
+export interface InitOptions {
+    projectName?: string;
+    verbose?: boolean;
+    npm?: boolean;
+    rnVersion?: string;
+    windowsVersion?: string;
+    windowsNamespace?: string;
+    skipInit?: boolean;
+    skipWindows?: boolean;
 }
 
 export class ProjectWizard {
@@ -49,7 +59,7 @@ export class ProjectWizard {
         this.upgradeProject = this.upgradeProject.bind(this);
     }
 
-    public async initializeProject(args: Arguments) {
+    public async initializeProject(args: InitOptions) {
         console.log(chalk.blueBright(textSync('ReactXP   CLI \n----------')));
 
         const projectNamePath: string = args.projectName || await prompts.text({
@@ -62,13 +72,13 @@ export class ProjectWizard {
         this.options = {
             name,
             path,
-            verbose: args.verbose,
-            forceNPM: args.npm,
-            rnVersion: args.rnVersion ? args.rnVersion : '0.55',
-            windowsVersion: args.windowsVersion,
-            windowsNamespace: args.windowsNamespace || name,
-            skipInit: args.skipInit,
-            skipWindows: args.skipWindows,
+            verbose: valueOrDefault(args.verbose, this.options.verbose),
+            forceNPM: valueOrDefault(args.npm, this.options.forceNPM),
+            rnVersion: valueOrDefault<string>(args.rnVersion, '0.59'),
+            windowsVersion: valueOrDefault<string>(args.windowsVersion, ''),
+            windowsNamespace: valueOrDefault(args.windowsNamespace, name),
+            skipInit: valueOrDefault(args.skipInit, this.options.skipInit),
+            skipWindows: valueOrDefault(args.skipWindows, this.options.skipWindows),
         };
 
         this.validateProjectName();

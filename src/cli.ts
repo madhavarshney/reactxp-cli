@@ -21,10 +21,12 @@ program
                 'npm': {
                     default: false,
                     describe: 'Use NPM even if Yarn is present.',
+                    type: 'boolean',
                 },
                 'verbose': {
                     default: false,
                     describe: 'Enable verbose logging.',
+                    type: 'boolean',
                 },
                 'rn-version': {
                     describe: 'The version of React Native to use.',
@@ -41,10 +43,12 @@ program
                 'skip-init': {
                     default: false,
                     describe: 'Skip adding React Native, useful for existing projects.',
+                    type: 'boolean',
                 },
                 'skip-windows': {
                     default: false,
                     describe: 'Skip adding Windows UWP support.',
+                    type: 'boolean',
                 },
                 // tslint:enable:object-literal-sort-keys
             })
