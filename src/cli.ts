@@ -8,12 +8,7 @@ import { ProjectWizard } from './index';
 
 const ReactXPWizard = new ProjectWizard();
 
-// Hack until @types/yargs is updated to reflect Yargs v12
-interface Argv extends program.Argv {
-    scriptName(name: string): Argv;
-}
-
-(program as Argv)
+program
     .scriptName('reactxp')
     .demandCommand()
     .wrap(program.terminalWidth())
