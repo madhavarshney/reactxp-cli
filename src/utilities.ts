@@ -32,31 +32,40 @@ export function getYarnVersionIfAvailable() {
 
 export interface GetInstallPackageOptions {
     includeRC?: boolean;
-    injectCaret?: boolean;
+    looseMatch?: boolean;
 }
 
-export function getInstallPackage(
+export function getInstallVersion(
     packageName: string,
-    packageVersion: string,
+    packageVersion: string | undefined,
     options: GetInstallPackageOptions = {},
 ): string | null {
-    let range: string | null;
-    let version = semver.coerce(packageVersion);
+    if (!packageVersion) {
+        return null;
+    }
+
+    let range: string | null = null;
+    let version = semver.parse(packageVersion);
     if (version) {
-        if (options.includeRC && version.prerelease.length === 0) {
-            version = semver.parse(version.version + '-rc.0') || version;
+        if (options.looseMatch) {
+            version = semver.parse(
+                `${version.major}.${version.minor}.0` +
+                (options.includeRC ? '-rc.0' : ''),
+            ) || version;
+            range = new semver.Range('^' + version.version).range;
         }
-        range = new semver.Range('^' + version.version).range;
     } else {
         range = semver.validRange(packageVersion);
     }
+
     if (!range) {
-        return `${packageName}@${packageVersion}`;
+        return (version && version.toString()) || packageVersion;
+    } else {
+        console.log(`Checking for a version of "${packageName}" matching "${range}"`);
+        const versions = JSON.parse(execSync(`npm view ${packageName} versions --json`).toString());
+        const versionToInstall = semver.maxSatisfying(versions, range);
+        return versionToInstall ? versionToInstall.toString() : null;
     }
-    console.log(`Checking for ${packageName} version matching ${range}`);
-    const versions = JSON.parse(execSync(`npm view ${packageName} versions --json`).toString());
-    const versionToInstall = semver.maxSatisfying(versions, range);
-    return versionToInstall ? `${packageName}@${versionToInstall}` : null;
 }
 
 export interface InstallPackageOptions {
@@ -65,18 +74,21 @@ export interface InstallPackageOptions {
     exact?: boolean;
 }
 
-export function installPackage(packageToInstall: string, options: InstallPackageOptions) {
+export function installPackage(packageToInstall: string | string[], options: InstallPackageOptions) {
     let installCommand: string;
     const exact = valueOrDefault<boolean>(options.exact, true);
+    const packageList = Array.isArray(packageToInstall)
+        ? packageToInstall.map((p) => `"${p}"`).join(' ')
+        : `"${packageToInstall}"`;
 
     if (!options.forceNPM && getYarnVersionIfAvailable()) {
-        console.log(`Installing ${packageToInstall} with Yarn v${yarnVersion}...`);
-        installCommand = `yarn add "${packageToInstall}"`
+        console.log(`Installing ${packageList} with Yarn v${yarnVersion}...`);
+        installCommand = `yarn add ${packageList}`
             + (options.dev ? ' --dev' : '')
             + (exact ? ' --exact' : '');
     } else {
-        console.log(`Installing ${packageToInstall} with NPM...`);
-        installCommand = `npm install --save${options.dev ? '-dev' : ''} ${packageToInstall}`;
+        console.log(`Installing ${packageList} with NPM...`);
+        installCommand = `npm install --save${options.dev ? '-dev' : ''} ${packageList}`;
     }
 
     execSync(installCommand, { stdio: 'inherit' });

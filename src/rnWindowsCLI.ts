@@ -4,7 +4,7 @@
 import chalk from 'chalk';
 import { resolve } from 'path';
 import { prompts } from 'prompts';
-import { getInstallPackage, installPackage } from './utilities';
+import { getInstallVersion } from './utilities';
 
 export interface WindowsCLIOptions {
     name: string;
@@ -22,13 +22,11 @@ async function getWindowsPackage(
     rnVersionOption: string | undefined,
     windowsVersionOption: string | undefined,
 ): Promise<string | false> {
-    let packageToInstall: string | null;
+    let versionToInstall: string | null = null;
 
     if (windowsVersionOption) {
-        packageToInstall = getInstallPackage(packageName, windowsVersionOption, { includeRC: true });
-        if (packageToInstall) {
-            return packageToInstall;
-        } else {
+        versionToInstall = getInstallVersion(packageName, windowsVersionOption, {});
+        if (!versionToInstall) {
             if (rnVersionOption) {
                 console.log(chalk.yellowBright(
                     `\nWARNING: Cannot find RN Windows version "${windowsVersionOption}".` +
@@ -43,40 +41,46 @@ async function getWindowsPackage(
         }
     }
 
-    if (rnVersionOption) {
-        packageToInstall = getInstallPackage(packageName, rnVersionOption, { includeRC: true });
-        if (packageToInstall) {
-            return packageToInstall;
-        }
-        console.log(chalk.redBright(
-            `\nERROR: Cannot find a RN Windows version compatible with React Native version "${rnVersionOption}".` + (
-                !windowsVersionOption ? (
-                    `  Please explicitly specify the RN Windows version to use with "--windows-version".` +
-                    `  Run "reactxp init --help" for more options.`
-                ) : ''
-            ) + '\n',
-        ));
-    }
-
-    const nextStep = await prompts.select({
-        message: 'What should we do next?',
-        choices: [
-            { title: 'Skip adding React Native Windows', value: 'skip' },
-            { title: 'Enter version of React Native Windows to use', value: 'version' },
-        ],
-    });
-
-    if (nextStep === 'version') {
-        const version = await prompts.text({
-            message: 'Enter the version of React Native Windows to use: ',
+    if (!versionToInstall && rnVersionOption) {
+        versionToInstall = getInstallVersion(packageName, rnVersionOption, {
+            includeRC: true,
+            looseMatch: true,
         });
-        if (version && version.length > 0) {
-            return getWindowsPackage(undefined, version);
+        if (!versionToInstall) {
+            console.log(chalk.redBright(
+                `\nERROR: Cannot find a React Native Windows version compatible with ` +
+                `React Native version "${rnVersionOption}".` + (
+                    !windowsVersionOption ? (
+                        `  Please explicitly specify the RN Windows version to use with "--windows-version".` +
+                        `  Run "reactxp init --help" for more options.`
+                    ) : ''
+                ) + '\n',
+            ));
         }
     }
 
-    console.log(chalk.whiteBright('\nSkipping Windows UWP support.'));
-    return false;
+    if (!versionToInstall) {
+        const nextStep = await prompts.select({
+            message: 'What should we do next?',
+            choices: [
+                { title: 'Skip adding React Native Windows', value: 'skip' },
+                { title: 'Enter version of React Native Windows to use', value: 'version' },
+            ],
+        });
+
+        if (nextStep === 'version') {
+            const version = await prompts.text({
+                message: 'Enter the version of React Native Windows to use: ',
+            });
+            if (version && version.length > 0) {
+                return getWindowsPackage(undefined, version);
+            }
+        }
+
+        console.log(chalk.whiteBright('\nSkipping Windows UWP support.'));
+    }
+
+    return versionToInstall || false;
 }
 
 function generateWindows(options: WindowsCLIOptions) {
@@ -89,11 +93,15 @@ function generateWindows(options: WindowsCLIOptions) {
 }
 
 export async function init(options: WindowsCLIOptions) {
-    console.log(chalk.whiteBright('Adding Windows UWP support...'));
+    console.log(chalk.bold.whiteBright('Adding Windows UWP Platform...'));
 
-    const windowsPackage = await getWindowsPackage(options.rnVersion, options.windowsVersion);
-    if (windowsPackage) {
-        installPackage(windowsPackage, options);
-        generateWindows(options);
-    }
+    generateWindows(options);
+}
+
+export async function getDependencies(options: WindowsCLIOptions) {
+    const packageVersion = await getWindowsPackage(options.rnVersion, options.windowsVersion);
+    return packageVersion ? {
+        package: `${packageName}@${packageVersion}`,
+        version: packageVersion,
+    } : null;
 }

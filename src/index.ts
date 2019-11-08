@@ -9,8 +9,9 @@ import { prompts } from 'prompts';
 
 import './modules';
 import * as reactNativeCLI from './reactNativeCLI';
+import * as reactxpCLI from './reactxpCLI';
 import * as rnWindowsCLI from './rnWindowsCLI';
-import { getYarnVersionIfAvailable, valueOrDefault } from './utilities';
+import { getYarnVersionIfAvailable, installPackage, valueOrDefault } from './utilities';
 
 interface PackageJSON {
     name: string;
@@ -23,11 +24,13 @@ export interface InitOptions {
     projectName?: string;
     verbose?: boolean;
     npm?: boolean;
+    rxpVersion?: string;
     rnVersion?: string;
     windowsVersion?: string;
     windowsNamespace?: string;
     skipInit?: boolean;
     skipWindows?: boolean;
+    skipRxp?: boolean;
 }
 
 export class ProjectWizard {
@@ -36,11 +39,13 @@ export class ProjectWizard {
         path: string;
         verbose: boolean;
         forceNPM: boolean;
+        rxpVersion: string;
         rnVersion: string;
         windowsVersion: string;
         windowsNamespace: string;
         skipInit: boolean;
         skipWindows: boolean;
+        skipRXP: boolean;
     };
 
     constructor() {
@@ -49,11 +54,13 @@ export class ProjectWizard {
             path: '',
             verbose: false,
             forceNPM: false,
+            rxpVersion: '',
             rnVersion: '',
             windowsVersion: '',
             windowsNamespace: '',
             skipInit: true,
             skipWindows: true,
+            skipRXP: true,
         };
         this.initializeProject = this.initializeProject.bind(this);
         this.upgradeProject = this.upgradeProject.bind(this);
@@ -74,17 +81,19 @@ export class ProjectWizard {
             path,
             verbose: valueOrDefault(args.verbose, this.options.verbose),
             forceNPM: valueOrDefault(args.npm, this.options.forceNPM),
-            rnVersion: valueOrDefault<string>(args.rnVersion, '0.59'),
+            rxpVersion: valueOrDefault<string>(args.rxpVersion, ''),
+            rnVersion: valueOrDefault<string>(args.rnVersion, ''),
             windowsVersion: valueOrDefault<string>(args.windowsVersion, ''),
             windowsNamespace: valueOrDefault(args.windowsNamespace, name),
             skipInit: valueOrDefault(args.skipInit, this.options.skipInit),
             skipWindows: valueOrDefault(args.skipWindows, this.options.skipWindows),
+            skipRXP: valueOrDefault(args.skipRxp, this.options.skipRXP),
         };
 
         this.validateProjectName();
         await this.confirmProjectCreation(directoryExists);
 
-        console.log(chalk.whiteBright(`Creating a new React Native project in ${this.options.path}...\n`));
+        console.log(chalk.bold.whiteBright(`\nCreating a new ReactXP project in ${this.options.path}...\n`));
 
         if (!directoryExists) {
             mkdirSync(this.options.path);
@@ -92,14 +101,39 @@ export class ProjectWizard {
         process.chdir(this.options.path);
 
         const configPath = this.writePMConfig();
+        await this.createPackageJSON();
 
-        if (!this.options.skipInit) {
-            this.createPackageJSON();
-            await reactNativeCLI.init(this.options);
-            console.log('\n');
+        console.log(chalk.bold.whiteBright(`\nInstalling dependencies...\n`));
+
+        const rxpPackage = await reactxpCLI.getDependencies(this.options);
+        this.options.rxpVersion = valueOrDefault(
+            rxpPackage && rxpPackage.version,
+            this.options.rxpVersion,
+        );
+
+        const rnPackage = await reactNativeCLI.getDependencies(this.options);
+        this.options.rnVersion = valueOrDefault(
+            rnPackage && rnPackage.version,
+            this.options.rnVersion,
+        );
+
+        const rnWinPackage = await rnWindowsCLI.getDependencies(this.options);
+
+        const packagesToInstall = [rxpPackage, rnPackage, rnWinPackage]
+            .map((p) => (p && p.package) || false)
+            .filter<string>((p): p is string => p !== false);
+
+        await installPackage(packagesToInstall, this.options);
+
+        console.log(chalk.bold.whiteBright(`\nGenerating files...\n`));
+
+        if (rxpPackage && !this.options.skipRXP) {
+            await reactxpCLI.init(this.options);
         }
-
-        if (!this.options.skipWindows) {
+        if (rnPackage && !this.options.skipInit) {
+            await reactNativeCLI.init(this.options);
+        }
+        if (rnWinPackage && !this.options.skipWindows) {
             await rnWindowsCLI.init(this.options);
         }
 
@@ -134,7 +168,7 @@ export class ProjectWizard {
         }
     }
 
-    private createPackageJSON() {
+    private async createPackageJSON() {
         // tslint:disable:object-literal-sort-keys
         const packageJSON: PackageJSON = {
             name: this.options.name,
@@ -151,7 +185,19 @@ export class ProjectWizard {
             packageJSON.scripts.windows = 'react-native run-windows';
         }
 
-        writeFileSync(join(this.options.path, 'package.json'), JSON.stringify(packageJSON, undefined, 2));
+        const filePath = join(this.options.path, 'package.json');
+        const fileExists = existsSync(filePath);
+
+        if (fileExists) {
+            const message = chalk.whiteBright(`The file package.json already exists. Should we overwrite it?`);
+            const confirm = await prompts.confirm({ message, initial: false });
+
+            if (!confirm) {
+                return;
+            }
+        }
+
+        writeFileSync(filePath, JSON.stringify(packageJSON, undefined, 2));
     }
 
     private writePMConfig() {

@@ -8,7 +8,7 @@ declare module 'prompts' {
         choices?: Array<{ title?: string, value: T }>;
     }
     export namespace prompts {
-        function text(options: PromptOptions): string;
+        function text(options: PromptOptions): Promise<string>;
         function confirm(options: PromptOptions): boolean;
         function select<T = string>(options: PromptOptions<T>): T;
     }

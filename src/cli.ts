@@ -28,6 +28,10 @@ program
                     describe: 'Enable verbose logging.',
                     type: 'boolean',
                 },
+                'rxp-version': {
+                    describe: 'The version of ReactXP to use.',
+                    type: 'string',
+                },
                 'rn-version': {
                     describe: 'The version of React Native to use.',
                     type: 'string',
@@ -42,12 +46,17 @@ program
                 },
                 'skip-init': {
                     default: false,
-                    describe: 'Skip adding React Native, useful for existing projects.',
+                    describe: 'Skip adding React Native.',
                     type: 'boolean',
                 },
                 'skip-windows': {
                     default: false,
                     describe: 'Skip adding Windows UWP support.',
+                    type: 'boolean',
+                },
+                'skip-rxp': {
+                    default: false,
+                    describe: 'Skip adding ReactXP.',
                     type: 'boolean',
                 },
                 // tslint:enable:object-literal-sort-keys

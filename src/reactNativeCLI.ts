@@ -2,17 +2,17 @@
 // This source code is licensed under the MIT license.
 
 import chalk from 'chalk';
+import { execSync } from 'child_process';
 import { resolve } from 'path';
 import { prompts } from 'prompts';
 import * as semver from 'semver';
 
-import { getInstallPackage, installPackage } from './utilities';
+import { getInstallVersion } from './utilities';
 
 export interface RNInitOptions {
     name: string;
     path: string;
-    verbose: boolean;
-    forceNPM: boolean;
+    rxpVersion: string;
     rnVersion: string;
 }
 
@@ -32,44 +32,64 @@ function checkNodeVersion(options: RNInitOptions) {
     }
 }
 
-function getBabelPackage() {
-    const packageToInstall = getInstallPackage('@babel/core', '^7.0.0');
-    return packageToInstall ? packageToInstall : false;
-}
+// function getBabelPackage() {
+//     const packageToInstall = getInstallPackage('@babel/core', '^7.0.0');
+//     return packageToInstall ? packageToInstall : false;
+// }
 
-async function getRNPackage(rnVersionOption: string): Promise<string | false> {
-    const packageName = 'react-native';
-    const versionOptionPackage = getInstallPackage(packageName, rnVersionOption, { includeRC: false });
-    if (versionOptionPackage) {
-        return versionOptionPackage;
+const packageName = 'react-native';
+
+async function getRNPackage(rnVersionOption: string, rxpVersion?: string): Promise<string | false> {
+    let versionToInstall: string | null = null;
+
+    if (rnVersionOption) {
+        versionToInstall = getInstallVersion(packageName, rnVersionOption, {});
+        if (!versionToInstall) {
+            console.log(chalk.yellowBright(`\nERROR: Cannot find React Native version "${rnVersionOption}". Falling back to using the version specified by ReactXP.\n`));
+        }
     }
 
-    console.log(chalk.redBright(`\nERROR: Cannot find React Native version "${rnVersionOption}".\n`));
-
-    const newVersion = await prompts.text({
-        message: 'Enter the version of React Native to use: ',
-    });
-    if (newVersion && newVersion.length > 0) {
-        return getRNPackage(newVersion);
+    if (!versionToInstall && rxpVersion) {
+        // console.log(`Checking for peerDependency of reactxp on ${packageName}`);
+        const peerDependencies = JSON.parse(
+            execSync(`npm view reactxp@${rxpVersion} peerDependencies --json`).toString(),
+        );
+        const versionRange = peerDependencies && peerDependencies['react-native'];
+        versionToInstall = versionRange && getInstallVersion(packageName, versionRange, {});
     }
 
-    return false;
+    if (!versionToInstall) {
+        console.log(chalk.redBright(`\nERROR: Cannot find React Native version that satisfies the peerDependency range of ReactXP.\n`));
+
+        const newVersion = await prompts.text({
+            message: 'Enter the version of React Native to use: ',
+        });
+        if (newVersion && newVersion.length > 0) {
+            return getRNPackage(newVersion);
+        }
+    }
+
+    return versionToInstall || false;
 }
 
 export async function init(options: RNInitOptions) {
-    const babelPackage = getBabelPackage();
-    if (babelPackage) {
-        installPackage(babelPackage, { forceNPM: options.forceNPM, dev: true });
-    }
+    console.log(chalk.bold.whiteBright('Adding Android and iOS platforms with React Native...'));
 
-    const rnPackage = await getRNPackage(options.rnVersion);
-    if (rnPackage) {
-        installPackage(rnPackage, options);
-        checkNodeVersion(options);
+    checkNodeVersion(options);
 
-        const reactNativeLocalCLI = require(resolve(options.path, 'node_modules/react-native/cli.js'));
-        reactNativeLocalCLI.init(options.path, options.name);
-    } else {
-        throw chalk.redBright('\nProject creation failed!');
-    }
+    const reactNativeLocalCLI = require(resolve(options.path, 'node_modules/react-native/cli.js'));
+    reactNativeLocalCLI.init(options.path, options.name);
+}
+
+export async function getDependencies(options: RNInitOptions) {
+    // const babelPackage = getBabelPackage();
+    // if (babelPackage) {
+    //     installPackage(babelPackage, { forceNPM: options.forceNPM, dev: true });
+    // }
+
+    const packageVersion = await getRNPackage(options.rnVersion, options.rxpVersion);
+    return packageVersion ? {
+        package: `${packageName}@${packageVersion}`,
+        version: packageVersion,
+    } : null;
 }

@@ -44,6 +44,8 @@ Options:
 Run `reactxp init` followed by any of the following options to create a new project:
 
 ```
+reactxp init [project-name]
+
 Positionals:
   project-name  The name or path of the project to create.
 
@@ -52,11 +54,13 @@ Options:
   --version            Show version number                           [boolean]
   --npm                Use NPM even if Yarn is present.              [boolean] [default: false]
   --verbose            Enable verbose logging.                       [boolean] [default: false]
+  --rxp-version        The version of ReactXP to use.                [string]
   --rn-version         The version of React Native to use.           [string]
   --windows-version    The version of React Native Windows to use.   [string]
   --windows-namespace  The namespace that will be used in the generated Windows C# code.   [string]
-  --skip-init          Skip adding React Native, useful for existing projects.             [boolean] [default: false]
-  --skip-windows       Skip adding Windows UWP support.
+  --skip-init          Skip adding React Native                      [boolean] [default: false]
+  --skip-windows       Skip adding Windows UWP support.              [boolean] [default: false]
+  --skip-rxp           Skip adding ReactXP                           [boolean] [default: false]
 ```
 
 ### Upgrading an existing project
