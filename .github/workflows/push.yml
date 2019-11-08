@@ -1,0 +1,26 @@
+name: CI
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout project
+      uses: actions/checkout@v1
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v1.1.0
+      with:
+        node-version: '12.x'
+
+    - name: Install yarn
+      run: npm i -g yarn
+    
+    - name: Install project dependencies
+      run: yarn install --fozen-lockfile
+
+    - name: Build project
+      run: yarn run build
+      
+    - name: Lint project
+      run: yarn run lint
