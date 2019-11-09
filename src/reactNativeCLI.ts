@@ -72,13 +72,41 @@ async function getRNPackage(rnVersionOption: string, rxpVersion?: string): Promi
     return versionToInstall || false;
 }
 
+const androidBasePath = 'android/app/src/main/java/com';
+
+// TODO: verify that the patches are applied
+function applyMainComponentNamePatch(options: RNInitOptions) {
+    const androidFilePath = `${androidBasePath}/${options.name.toLowerCase()}/MainActivity.java`;
+    console.log(chalk.whiteBright(`Patching ${androidFilePath} for ReactXP...`));
+
+    const androidMainActivity = readFileSync(androidFilePath).toString();
+    const newActivity = androidMainActivity.replace(
+        /getMainComponentName\(\) {\s*return "(.*)";/m,
+        (match) => match.replace(options.name, rxMainComponentName),
+    );
+
+    writeFileSync(androidFilePath, newActivity);
+
+    const iosFilePath = `ios/${options.name}/AppDelegate.m`;
+    console.log(chalk.whiteBright(`Patching ${iosFilePath} for ReactXP...`));
+
+    const iosAppDelegate = readFileSync(iosFilePath).toString();
+    const newAppDelegate = iosAppDelegate.replace(
+        /moduleName:@".*"/m,
+        (match) => match.replace(options.name, rxMainComponentName),
+    );
+    writeFileSync(iosFilePath, newAppDelegate);
+}
+
 export async function init(options: RNInitOptions) {
     console.log(chalk.bold.whiteBright('Adding Android and iOS platforms with React Native...'));
-
     checkNodeVersion(options);
 
     const reactNativeLocalCLI = require(resolve(options.path, 'node_modules/react-native/cli.js'));
     reactNativeLocalCLI.init(options.path, options.name);
+
+    applyMainComponentNamePatch(options);
+    console.log('\n');
 }
 
 export async function getDependencies(options: RNInitOptions) {

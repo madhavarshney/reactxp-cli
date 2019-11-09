@@ -92,10 +92,24 @@ function generateWindows(options: WindowsCLIOptions) {
     generator(options.path, options.name, options.windowsNamespace);
 }
 
+// TODO: verify that the patches are applied
+function applyMainComponentNamePatch(options: WindowsCLIOptions) {
+    const winFilePath = `windows/${options.name}/MainPage.xaml.cs`;
+    console.log(chalk.whiteBright(`Patching ${winFilePath} for ReactXP...`));
+
+    const winMainPage = readFileSync(winFilePath).toString();
+    const newMainPage = winMainPage.replace(
+        /const string JSCOMPONENTNAME = ".*";/m,
+        (match) => match.replace(options.name, rxMainComponentName),
+    );
+    writeFileSync(winFilePath, newMainPage);
+}
+
 export async function init(options: WindowsCLIOptions) {
     console.log(chalk.bold.whiteBright('Adding Windows UWP Platform...'));
-
     generateWindows(options);
+    applyMainComponentNamePatch(options);
+    console.log('\n');
 }
 
 export async function getDependencies(options: WindowsCLIOptions) {
