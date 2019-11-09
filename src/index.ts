@@ -127,14 +127,14 @@ export class ProjectWizard {
 
         console.log(chalk.bold.whiteBright(`\nGenerating files...\n`));
 
-        if (rxpPackage && !this.options.skipRXP) {
-            await reactxpCLI.init(this.options);
-        }
         if (rnPackage && !this.options.skipInit) {
             await reactNativeCLI.init(this.options);
         }
         if (rnWinPackage && !this.options.skipWindows) {
             await rnWindowsCLI.init(this.options);
+        }
+        if (rxpPackage && !this.options.skipRXP) {
+            await reactxpCLI.init(this.options);
         }
 
         if (!this.options.verbose && configPath) {

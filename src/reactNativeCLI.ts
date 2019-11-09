@@ -3,11 +3,13 @@
 
 import chalk from 'chalk';
 import { execSync } from 'child_process';
+import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { prompts } from 'prompts';
 import * as semver from 'semver';
 
-import { getInstallVersion } from './utilities';
+import { Packages, rxMainComponentName } from './interfaces';
+import { getInstallVersion, rmdirAsync, unlinkMultiple } from './utilities';
 
 export interface RNInitOptions {
     name: string;
@@ -16,8 +18,10 @@ export interface RNInitOptions {
     rnVersion: string;
 }
 
+const packageName = Packages.ReactNative;
+
 function checkNodeVersion(options: RNInitOptions) {
-    const packageJSONPath = resolve(options.path, 'node_modules/react-native/package.json');
+    const packageJSONPath = resolve(options.path, `node_modules/${packageName}/package.json`);
     const packageJSON = require(packageJSONPath);
     if (!packageJSON.engines || !packageJSON.engines.node) {
         return;
@@ -37,8 +41,6 @@ function checkNodeVersion(options: RNInitOptions) {
 //     return packageToInstall ? packageToInstall : false;
 // }
 
-const packageName = 'react-native';
-
 async function getRNPackage(rnVersionOption: string, rxpVersion?: string): Promise<string | false> {
     let versionToInstall: string | null = null;
 
@@ -52,9 +54,9 @@ async function getRNPackage(rnVersionOption: string, rxpVersion?: string): Promi
     if (!versionToInstall && rxpVersion) {
         // console.log(`Checking for peerDependency of reactxp on ${packageName}`);
         const peerDependencies = JSON.parse(
-            execSync(`npm view reactxp@${rxpVersion} peerDependencies --json`).toString(),
+            execSync(`npm view ${Packages.ReactXP}@${rxpVersion} peerDependencies --json`).toString(),
         );
-        const versionRange = peerDependencies && peerDependencies['react-native'];
+        const versionRange = peerDependencies && peerDependencies[packageName];
         versionToInstall = versionRange && getInstallVersion(packageName, versionRange, {});
     }
 
@@ -102,8 +104,13 @@ export async function init(options: RNInitOptions) {
     console.log(chalk.bold.whiteBright('Adding Android and iOS platforms with React Native...'));
     checkNodeVersion(options);
 
-    const reactNativeLocalCLI = require(resolve(options.path, 'node_modules/react-native/cli.js'));
+    const reactNativeLocalCLI = require(resolve(options.path, `node_modules/${packageName}/cli.js`));
     reactNativeLocalCLI.init(options.path, options.name);
+    await unlinkMultiple(
+        options.path,
+        ['index.js', 'App.js', '.flowconfig', '__tests__/App-test.js'],
+    );
+    // await rmdirAsync(resolve(options.path, '__tests__'));
 
     applyMainComponentNamePatch(options);
     console.log('\n');

@@ -2,9 +2,12 @@
 // This source code is licensed under the MIT license.
 
 import chalk from 'chalk';
+import { readFileSync, writeFileSync } from 'fs';
 import { resolve } from 'path';
 import { prompts } from 'prompts';
-import { getInstallVersion } from './utilities';
+
+import { Packages, rxMainComponentName } from './interfaces';
+import { getInstallVersion, unlinkAsync, unlinkMultiple } from './utilities';
 
 export interface WindowsCLIOptions {
     name: string;
@@ -16,7 +19,7 @@ export interface WindowsCLIOptions {
     windowsNamespace: string;
 }
 
-const packageName = 'react-native-windows';
+const packageName = Packages.RNWindows;
 
 async function getWindowsPackage(
     rnVersionOption: string | undefined,
@@ -83,13 +86,28 @@ async function getWindowsPackage(
     return versionToInstall || false;
 }
 
+const rnWindowsModulePath = 'node_modules/react-native-windows';
+const rnWindowsLocalCliPath = `${rnWindowsModulePath}/local-cli`;
+
 function generateWindows(options: WindowsCLIOptions) {
-    const generator = require(resolve(
+    // const generator = require(resolve(
+    //     options.path,
+    //     'node_modules/react-native-windows/local-cli/generate-windows.js',
+    // ));
+    // generator(options.path, options.name, options.windowsNamespace);
+
+    const templatePath = resolve(options.path, `${rnWindowsLocalCliPath}/generator-windows/templates`);
+    const { copyProjectTemplateAndReplace } = require(resolve(
         options.path,
-        'node_modules/react-native-windows/local-cli/generate-windows.js',
+        `${rnWindowsLocalCliPath}/generator-windows/index.js`,
     ));
 
-    generator(options.path, options.name, options.windowsNamespace);
+    copyProjectTemplateAndReplace(
+        templatePath,
+        options.path,
+        options.name,
+        { ns: options.windowsNamespace },
+    );
 }
 
 // TODO: verify that the patches are applied
@@ -109,6 +127,7 @@ export async function init(options: WindowsCLIOptions) {
     console.log(chalk.bold.whiteBright('Adding Windows UWP Platform...'));
     generateWindows(options);
     applyMainComponentNamePatch(options);
+    await unlinkMultiple(options.path, ['index.windows.js']);
     console.log('\n');
 }
 

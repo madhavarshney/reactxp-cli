@@ -3,8 +3,13 @@
 
 import { execSync } from 'child_process';
 import { existsSync } from 'fs';
+import { rmdir, unlink } from 'fs';
 import { resolve } from 'path';
 import * as semver from 'semver';
+import { promisify } from 'util';
+
+export const unlinkAsync = promisify(unlink);
+export const rmdirAsync = promisify(rmdir);
 
 export function valueOrDefault<T>(value: T | undefined | null, def: T) {
     return (value !== undefined && value !== null) ? value : def;
@@ -92,4 +97,8 @@ export function installPackage(packageToInstall: string | string[], options: Ins
     }
 
     execSync(installCommand, { stdio: 'inherit' });
+}
+
+export function unlinkMultiple(rootDir: string, files: string[]) {
+    return Promise.all(files.map((p) => unlinkAsync(resolve(rootDir, p))));
 }

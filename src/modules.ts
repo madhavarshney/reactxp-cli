@@ -9,7 +9,7 @@ declare module 'prompts' {
     }
     export namespace prompts {
         function text(options: PromptOptions): Promise<string>;
-        function confirm(options: PromptOptions): boolean;
+        function confirm(options: PromptOptions): Promise<boolean>;
         function select<T = string>(options: PromptOptions<T>): T;
     }
 }

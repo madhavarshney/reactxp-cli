@@ -3,15 +3,19 @@
 
 import chalk from 'chalk';
 import { execSync } from 'child_process';
+import { resolve } from 'path';
 import { prompts } from 'prompts';
 
+import { copyProjectTemplateAndReplace } from './copyTemplate';
+import { Packages } from './interfaces';
 import { getInstallVersion } from './utilities';
 
 export interface RXInitOptions {
+    name: string;
     rxpVersion: string;
 }
 
-const packageName = 'reactxp';
+const packageName = Packages.ReactXP;
 
 async function getRXPackage(rxVersionOption?: string): Promise<string | false> {
     let packageVersion = getInstallVersion(packageName, rxVersionOption, {});
@@ -38,7 +42,13 @@ async function getRXPackage(rxVersionOption?: string): Promise<string | false> {
 }
 
 export async function init(options: RXInitOptions) {
-    // TODO: apply ReactXP patches
+    console.log(chalk.bold.whiteBright('Adding support for ReactXP...'));
+
+    await copyProjectTemplateAndReplace(
+        resolve(__dirname, '../templates/javascript'),
+        process.cwd(),
+        {},
+    );
 }
 
 export async function getDependencies(options: RXInitOptions) {
