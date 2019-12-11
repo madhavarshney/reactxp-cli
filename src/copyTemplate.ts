@@ -15,7 +15,7 @@
 
 // tslint:enable: max-line-length
 
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 import { prompts } from 'prompts';

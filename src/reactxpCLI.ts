@@ -1,7 +1,7 @@
 // Copyright (c) 2018-2019, Madhav Varshney.
 // This source code is licensed under the MIT license.
 
-import chalk from 'chalk';
+import * as chalk from 'chalk';
 import { execSync } from 'child_process';
 import { resolve } from 'path';
 import { prompts } from 'prompts';
