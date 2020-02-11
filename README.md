@@ -4,6 +4,27 @@
 
 ---
 
+<p>
+  <a href="https://github.com/madhavarshney/reactxp-cli/releases">
+    <img alt="Version" src="https://img.shields.io/github/package-json/v/madhavarshney/reactxp-cli?style=for-the-badge">
+  </a>
+  <a href="https://github.com/madhavarshney/reactxp-cli/actions?query=workflow%3ACI">
+    <img alt="CI Workflow" src="https://img.shields.io/github/workflow/status/madhavarshney/reactxp-cli/CI?style=for-the-badge">
+  </a>
+  <a href="https://github.com/madhavarshney/reactxp-cli/issues">
+    <img alt="GitHub issues" src="https://img.shields.io/github/issues/madhavarshney/reactxp-cli?style=for-the-badge">
+  </a>
+  <a href="https://github.com/madhavarshney/reactxp-cli/stargazers">
+    <img alt="GitHub stars" src="https://img.shields.io/github/stars/madhavarshney/reactxp-cli?style=for-the-badge">
+  </a>
+  <a href="https://github.com/madhavarshney/reactxp-cli/network">
+    <img alt="GitHub forks" src="https://img.shields.io/github/forks/madhavarshney/reactxp-cli?style=for-the-badge">
+  </a>
+  <a href="https://github.com/madhavarshney/reactxp-cli/blob/master/LICENSE">
+    <img alt="GitHub license" src="https://img.shields.io/github/license/madhavarshney/reactxp-cli?style=for-the-badge">
+  </a>
+</p>
+
 🚀 ReactXP-CLI is a tool to create and manage ReactXP projects, allowing you to get started within minutes.
 
 ## Features:
@@ -76,3 +97,7 @@ To run this project locally:
 3. Run `yarn run lint [--fix]` to lint the project using TSLint
 
 All contributions are welcome. Please open an issue or submit a PR to help improve this project.
+
+## License
+
+This project is licensed under the MIT license.

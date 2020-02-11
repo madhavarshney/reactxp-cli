@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, Madhav Varshney.
+// Copyright (c) 2018-2020, Madhav Varshney.
 // This source code is licensed under the MIT license.
 
 import * as chalk from 'chalk';
@@ -105,7 +105,7 @@ export async function init(options: RNInitOptions) {
     checkNodeVersion(options);
 
     const reactNativeLocalCLI = require(resolve(options.path, `node_modules/${packageName}/cli.js`));
-    reactNativeLocalCLI.init(options.path, options.name);
+    await reactNativeLocalCLI.init(options.path, options.name);
     await unlinkMultiple(
         options.path,
         ['index.js', 'App.js', '.flowconfig', '__tests__/App-test.js'],
