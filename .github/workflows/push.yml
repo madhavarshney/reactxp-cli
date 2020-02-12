@@ -2,25 +2,30 @@ name: CI
 on: [push]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-18.04]
+        node: ['12']
+    name: 'Node v${{ matrix.node }} on ${{ matrix.os }}'
 
     steps:
     - name: Checkout project
       uses: actions/checkout@v1
 
     - name: Setup Node.js
-      uses: actions/setup-node@v1.1.0
+      uses: actions/setup-node@v1
       with:
-        node-version: '12.x'
+        node-version: ${{ matrix.node }}
 
-    - name: Install yarn
-      run: npm i -g yarn
-    
     - name: Install project dependencies
       run: yarn install --fozen-lockfile
 
     - name: Build project
       run: yarn run build
-      
+
     - name: Lint project
       run: yarn run lint
+
+    - name: Test CLI
+      run: node lib/cli.js --help
